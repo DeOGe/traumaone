@@ -67,23 +67,6 @@ export default function PatientDetails() {
   // Handle JWT expired error: logout and redirect to login
   useEffect(() => {
     if (!patient) return;
-    // Listen for Supabase errors globally (for this page)
-    const handleError = (error: any) => {
-      if (error && error.code === 'PGRST301' && error.message === 'JWT expired') {
-        supabase.auth.signOut().then(() => {
-          window.location.href = '/login';
-        });
-      }
-    };
-    // Patch fetchPatient to handle error
-    const origFetchPatient = fetchPatient;
-    fetchPatient = async function() {
-      try {
-        await origFetchPatient();
-      } catch (error: any) {
-        handleError(error);
-      }
-    };
     // Optionally, listen for errors from other supabase calls here
     return () => {};
   }, [patient]);

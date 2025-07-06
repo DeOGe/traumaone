@@ -27,53 +27,6 @@ const cardStyle: React.CSSProperties = {
   margin: '0 0 24px 0',
 };
 
-const headerCardStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '18px',
-  boxShadow: '0 2px 16px rgba(0,182,233,0.08)',
-  padding: '36px 48px',
-  marginBottom: '32px',
-  border: '1px solid #eaf6fa',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  width: '100%',
-};
-
-const headerTextStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-};
-
-const headerTitleStyle: React.CSSProperties = {
-  fontSize: '2.5rem',
-  fontWeight: 700,
-  color: '#222c36',
-  margin: 0,
-  fontFamily: 'Segoe UI, Arial, sans-serif',
-};
-
-const headerSubtitleStyle: React.CSSProperties = {
-  fontSize: '1.35rem',
-  color: '#00b6e9',
-  margin: 0,
-  fontWeight: 500,
-  fontFamily: 'Segoe UI, Arial, sans-serif',
-};
-
-const headerIconStyle: React.CSSProperties = {
-  width: 110,
-  height: 110,
-  borderRadius: '50%',
-  background: '#e6f6fb',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: 64,
-  marginLeft: 32,
-};
-
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
