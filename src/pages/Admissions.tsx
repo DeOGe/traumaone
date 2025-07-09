@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import Layout from '../components/Layout';
+import Card from '../components/Card';
 import Select from 'react-select';
 
 // Admission and Patient types
@@ -63,35 +64,13 @@ const initialAdmission: Admission = {
   surgical_plan: '',
 };
 
-const PRIMARY = '#00b6e9';
-const cardStyle: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: '18px',
-  boxShadow: '0 2px 16px rgba(0,182,233,0.08)',
-  padding: '28px 32px',
-  marginBottom: '24px',
-  border: '1px solid #eaf6fa',
-  width: '100%',
-  maxWidth: '100%',
-  margin: '0 0 24px 0',
-};
-const buttonStyle: React.CSSProperties = {
-  background: PRIMARY,
-  color: '#fff',
-  border: 'none',
-  borderRadius: '6px',
-  padding: '8px 18px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  marginRight: 8,
-  fontSize: '1rem',
-};
-const secondaryButtonStyle: React.CSSProperties = {
-  ...buttonStyle,
-  background: '#e6f6fb',
-  color: PRIMARY,
-  border: `1px solid ${PRIMARY}`,
-};
+// Tailwind button classes
+const buttonClass =
+  'bg-sky-400 text-white border-none rounded-md px-5 py-2 font-semibold cursor-pointer text-base transition-colors duration-150 hover:bg-sky-500 disabled:opacity-60 disabled:cursor-not-allowed';
+const secondaryButtonClass =
+  'bg-[#e6f6fb] text-sky-400 border border-sky-400 rounded-md px-5 py-2 font-semibold cursor-pointer text-base transition-colors duration-150 hover:bg-sky-100 disabled:opacity-60 disabled:cursor-not-allowed';
+const dangerButtonClass =
+  'bg-red-500 text-white border-none rounded-md px-5 py-2 font-semibold cursor-pointer text-base transition-colors duration-150 hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed';
 
 export default function Admissions() {
   const [admissions, setAdmissions] = useState<Admission[]>([]);
@@ -281,92 +260,85 @@ export default function Admissions() {
 
   return (
     <Layout>
-      <main style={{ padding: 36, background: '#f6fbfd', minHeight: '100vh', fontFamily: 'Segoe UI, Arial, sans-serif' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-            <h2 style={{ color: '#222c36', margin: 0 }}>Admissions</h2>
-            <button style={buttonStyle} onClick={() => openForm()}>New Admission</button>
+      <main className="p-9 bg-[#f6fbfd] min-h-screen font-sans">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-[#222c36] text-2xl font-bold m-0">Admissions</h2>
+            <button className={buttonClass} onClick={() => openForm()}>New Admission</button>
           </div>
-          <div style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18 }}>
+          <Card>
+            <div className="flex flex-wrap items-center gap-4 mb-4">
               <input
                 type="text"
                 value={searchInput}
                 onChange={e => {
                   setSearchInput(e.target.value);
-                  if (e.target.value === '') {
-                    setSearch('');
-                  }
+                  if (e.target.value === '') setSearch('');
                 }}
                 onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    setSearch(searchInput);
-                  }
+                  if (e.key === 'Enter') setSearch(searchInput);
                 }}
-                style={{ width: 260, padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', fontSize: 16, marginRight: 12 }}
+                className="w-64 px-3 py-2 rounded-md border border-[#d1e7ef] text-base mr-2 focus:outline-none focus:ring-2 focus:ring-sky-200"
                 placeholder="Search by patient name or reg #"
               />
-              <button
-                style={{ ...buttonStyle, padding: '8px 18px' }}
-                onClick={() => setSearch(searchInput)}
-              >
+              <button className={buttonClass} onClick={() => setSearch(searchInput)}>
                 Search
               </button>
               <input
                 type="date"
                 value={filterDate}
                 onChange={e => setFilterDate(e.target.value)}
-                style={{ marginLeft: 24, padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minWidth: 140 }}
+                className="ml-6 px-3 py-2 rounded-md border border-[#d1e7ef] min-w-[140px] text-base focus:outline-none focus:ring-2 focus:ring-sky-200"
                 placeholder="Filter by date"
               />
               <select
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
-                style={{ marginLeft: 12, padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minWidth: 140 }}
+                className="ml-3 px-3 py-2 rounded-md border border-[#d1e7ef] min-w-[140px] text-base focus:outline-none focus:ring-2 focus:ring-sky-200"
               >
                 <option value="ADMITTED">Admitted</option>
                 <option value="DISCHARGE">Discharged</option>
                 <option value="">All Statuses</option>
               </select>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 24, background: '#fff', minWidth: 900 }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse mt-6 bg-white min-w-[900px]">
                 <thead>
                   <tr>
-                    <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '12px 8px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Patient</th>
-                    <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '12px 8px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Chief Complaint</th>
-                    <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '12px 8px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Date/Time of Injury</th>
-                    <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '12px 8px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Diagnosis</th>
-                    <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '12px 8px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Actions</th>
+                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Patient</th>
+                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Chief Complaint</th>
+                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Date/Time of Injury</th>
+                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Diagnosis</th>
+                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {admissions.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ padding: 12 }}>No admissions found.</td>
+                      <td colSpan={5} className="py-4 text-center">No admissions found.</td>
                     </tr>
                   ) : (
                     admissions.map(adm => (
-                      <tr key={adm.id} style={{ background: '#fafdff', borderRadius: 8 }}>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{patients.find(p => p.id === adm.patient_id)?.first_name || 'Unknown'} {patients.find(p => p.id === adm.patient_id)?.last_name || ''}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.chief_complaint}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.date_of_injury} {adm.time_of_injury}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.diagnosis}</td>
-                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>
-                          <button
-                            style={buttonStyle}
-                            onClick={() => setShowDetails(adm.id || null)}
+                      <tr key={adm.id} className="bg-[#fafdff] rounded-lg">
+                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{patients.find(p => p.id === adm.patient_id)?.first_name || 'Unknown'} {patients.find(p => p.id === adm.patient_id)?.last_name || ''}</td>
+                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{adm.chief_complaint}</td>
+                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{adm.date_of_injury} {adm.time_of_injury}</td>
+                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{adm.diagnosis}</td>
+                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">
+                          <a
+                            href={`/admission/${adm.id}`}
+                            className={buttonClass + ' mr-2 inline-block text-center'}
                           >
                             Show
-                          </button>
+                          </a>
                           <button
-                            style={secondaryButtonStyle}
+                            className={secondaryButtonClass + ' mr-2'}
                             onClick={() => openForm(adm)}
                           >
                             Edit
                           </button>
                           <button
-                            style={{ ...buttonStyle, background: '#e94f4f' }}
+                            className={dangerButtonClass}
                             onClick={async () => {
                               await supabase.from('admissions').update({ status: 'DISCHARGE' }).eq('id', adm.id);
                               await fetchAdmissions();
@@ -381,76 +353,45 @@ export default function Admissions() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Card>
 
-          {/* Show Admission Details */}
-          {showDetails && (
-            <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px rgba(0,182,233,0.08)', padding: 32, marginBottom: 32 }}>
-              <button style={{ float: 'right', marginBottom: 8 }} onClick={() => setShowDetails(null)}>Close</button>
-              <h3 style={{ color: '#00b6e9' }}>Admission Details</h3>
-              {(() => {
-                const adm = admissions.find(a => a.id === showDetails);
-                if (!adm) return null;
-                return (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    {Object.entries(adm).map(([k, v]) => (
-                      k !== 'id' && k !== 'created_at' && (
-                        <div key={k}><strong>{k.replace(/_/g, ' ')}:</strong> {v?.toString()}</div>
-                      )
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
+          {/* ...existing code... (removed inline admission details display) */}
 
           {/* Admission Modal Wizard */}
           {showForm && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }} onClick={closeForm}>
-              <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px rgba(0,182,233,0.18)', padding: 32, minWidth: 420, maxWidth: 600, width: '100%', minHeight: 540, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }} onClick={e => e.stopPropagation()}>
-                <h3 style={{ color: '#00b6e9', marginBottom: 18 }}>{editId ? 'Update Admission' : 'New Admission'}</h3>
+            <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[2000]" onClick={closeForm}>
+              <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[420px] max-w-lg w-full min-h-[540px] flex flex-col" onClick={e => e.stopPropagation()}>
+                <h3 className="text-sky-400 text-xl font-bold mb-4">{editId ? 'Update Admission' : 'New Admission'}</h3>
                 {/* Wizard Tabs */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+                <div className="flex gap-2 mb-6">
                   {['Patient & Injury', 'History', 'Vitals', 'Exam & Labs', 'Diagnosis'].map((label, idx) => (
                     <button
                       key={label}
                       type="button"
                       onClick={() => setWizardStep(idx)}
-                      style={{
-                        flex: 1,
-                        padding: '10px 0',
-                        border: 'none',
-                        borderBottom: wizardStep === idx ? '3px solid #00b6e9' : '2px solid #e6f6fb',
-                        background: 'none',
-                        color: wizardStep === idx ? '#00b6e9' : '#7a8fa4',
-                        fontWeight: wizardStep === idx ? 700 : 500,
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        outline: 'none',
-                        transition: 'color 0.15s, border-bottom 0.15s',
-                        borderRadius: 0,
-                      }}
+                      className={`flex-1 py-2 border-b-2 text-base font-semibold transition-colors duration-150 ${
+                        wizardStep === idx
+                          ? 'border-sky-400 text-sky-400 bg-sky-50'
+                          : 'border-[#e6f6fb] text-slate-400 bg-transparent hover:bg-sky-50'
+                      }`}
                     >
                       {label}
                     </button>
                   ))}
                 </div>
-                <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }} onKeyDown={e => {
-                  // Prevent Enter key from submitting the form except on the last step
-                  if (e.key === 'Enter' && wizardStep < 4) {
-                    e.preventDefault();
-                  }
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1" onKeyDown={e => {
+                  if (e.key === 'Enter' && wizardStep < 4) e.preventDefault();
                 }}>
                   {formError && (
-                    <div style={{ color: '#e94f4f', fontWeight: 500, marginBottom: 8, textAlign: 'center' }}>{formError}</div>
+                    <div className="text-red-500 font-semibold mb-2 text-center">{formError}</div>
                   )}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                  <div className="flex-1 flex flex-col justify-start">
                     {/* Wizard Steps */}
                     {wizardStep === 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <label>Patient <span style={{ color: 'red' }}>*</span></label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <div style={{ minWidth: 260, flex: 1 }}>
+                      <div className="flex flex-col gap-4">
+                        <label>Patient <span className="text-red-500">*</span></label>
+                        <div className="flex items-center gap-2">
+                          <div className="min-w-[260px] flex-1">
                             <Select
                               options={patients.map(p => ({
                                 value: p.id,
@@ -470,80 +411,80 @@ export default function Admissions() {
                               }}
                             />
                           </div>
-                          <button type="button" onClick={() => setShowPatientModal(true)} style={{ background: '#e6f6fb', color: '#00b6e9', border: '1px solid #00b6e9', borderRadius: 6, padding: '8px 12px', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }}>+ Quick Add Patient</button>
+                          <button type="button" onClick={() => setShowPatientModal(true)} className={secondaryButtonClass + ' px-3 py-2 text-base font-semibold'}>+ Quick Add Patient</button>
                         </div>
                         <label>Chief Complaint</label>
-                        <input name="chief_complaint" value={form.chief_complaint} onChange={handleChange} required style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="chief_complaint" value={form.chief_complaint} onChange={handleChange} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                         <label>Nature of Injury</label>
-                        <input name="nature_of_injury" value={form.nature_of_injury} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
-                        <div style={{ display: 'flex', gap: 12 }}>
-                          <div style={{ flex: 1 }}>
+                        <input name="nature_of_injury" value={form.nature_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
+                        <div className="flex gap-3">
+                          <div className="flex-1">
                             <label>Date of Injury</label>
-                            <input name="date_of_injury" type="date" value={form.date_of_injury} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', width: '100%' }} />
+                            <input name="date_of_injury" type="date" value={form.date_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] w-full" />
                           </div>
-                          <div style={{ flex: 1 }}>
+                          <div className="flex-1">
                             <label>Time of Injury</label>
-                            <input name="time_of_injury" type="time" value={form.time_of_injury} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', width: '100%' }} />
+                            <input name="time_of_injury" type="time" value={form.time_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] w-full" />
                           </div>
                         </div>
                         <label>Place of Injury</label>
-                        <input name="place_of_injury" value={form.place_of_injury} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="place_of_injury" value={form.place_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                       </div>
                     )}
                     {wizardStep === 1 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div className="flex flex-col gap-4">
                         <label>History of Present Illness</label>
-                        <textarea name="history_of_present_illness" value={form.history_of_present_illness} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="history_of_present_illness" value={form.history_of_present_illness} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Past Medical History</label>
-                        <textarea name="past_medical_history" value={form.past_medical_history} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="past_medical_history" value={form.past_medical_history} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Personal Social History</label>
-                        <textarea name="personal_social_history" value={form.personal_social_history} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="personal_social_history" value={form.personal_social_history} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Obstetric Gynecologic History</label>
-                        <textarea name="obstetric_gynecologic_history" value={form.obstetric_gynecologic_history} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="obstetric_gynecologic_history" value={form.obstetric_gynecologic_history} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                       </div>
                     )}
                     {wizardStep === 2 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div className="flex flex-col gap-4">
                         <label>Blood Pressure</label>
-                        <input name="blood_pressure" value={form.blood_pressure} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="blood_pressure" value={form.blood_pressure} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                         <label>HR</label>
-                        <input name="hr" type="number" value={form.hr} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="hr" type="number" value={form.hr} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                         <label>RR</label>
-                        <input name="rr" type="number" value={form.rr} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="rr" type="number" value={form.rr} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                         <label>SpO2</label>
-                        <input name="spo2" type="number" value={form.spo2} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="spo2" type="number" value={form.spo2} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                         <label>Temperature</label>
-                        <input name="temperature" type="number" value={form.temperature} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
+                        <input name="temperature" type="number" value={form.temperature} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                       </div>
                     )}
                     {wizardStep === 3 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div className="flex flex-col gap-4">
                         <label>Physical Examination</label>
-                        <textarea name="physical_examination" value={form.physical_examination} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="physical_examination" value={form.physical_examination} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Imaging Findings</label>
-                        <textarea name="imaging_findings" value={form.imaging_findings} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="imaging_findings" value={form.imaging_findings} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Laboratory</label>
-                        <textarea name="laboratory" value={form.laboratory} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="laboratory" value={form.laboratory} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                       </div>
                     )}
                     {wizardStep === 4 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <div className="flex flex-col gap-4">
                         <label>Diagnosis</label>
-                        <textarea name="diagnosis" value={form.diagnosis} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="diagnosis" value={form.diagnosis} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Initial Management</label>
-                        <textarea name="initial_management" value={form.initial_management} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="initial_management" value={form.initial_management} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                         <label>Surgical Plan</label>
-                        <textarea name="surgical_plan" value={form.surgical_plan} onChange={handleChange} style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef', minHeight: 60 }} />
+                        <textarea name="surgical_plan" value={form.surgical_plan} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] min-h-[60px]" />
                       </div>
                     )}
                   </div>
                   {/* Wizard Navigation */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 24 }}>
-                    <button type="button" style={{ background: '#e6f6fb', color: '#00b6e9', border: '1px solid #00b6e9', borderRadius: 6, padding: '8px 18px', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }} onClick={closeForm} disabled={loading}>Cancel</button>
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button type="button" className={secondaryButtonClass} onClick={closeForm} disabled={loading}>Cancel</button>
                     {wizardStep < 4 ? (
-                      <button type="button" style={{ background: '#00b6e9', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 18px', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }} onClick={() => setWizardStep(wizardStep + 1)}>Next</button>
+                      <button type="button" className={buttonClass} onClick={() => setWizardStep(wizardStep + 1)}>Next</button>
                     ) : (
-                      <button type="submit" style={{ background: '#00b6e9', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 18px', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }} disabled={loading}>{editId ? 'Update' : 'Save'} Admission</button>
+                      <button type="submit" className={buttonClass} disabled={loading}>{editId ? 'Update' : 'Save'} Admission</button>
                     )}
                   </div>
                 </form>
@@ -553,23 +494,23 @@ export default function Admissions() {
 
           {/* Quick Add Patient Modal */}
           {showPatientModal && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }} onClick={() => setShowPatientModal(false)}>
-              <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 2px 16px rgba(0,182,233,0.18)', padding: 32, minWidth: 340, maxWidth: 420, width: '100%' }} onClick={e => e.stopPropagation()}>
-                <h3 style={{ color: '#00b6e9', marginBottom: 18 }}>Quick Add Patient</h3>
-                <form onSubmit={handleQuickAddPatient} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <input name="first_name" placeholder="First Name" value={newPatient.first_name} onChange={e => setNewPatient({ ...newPatient, first_name: e.target.value })} required style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
-                  <input name="last_name" placeholder="Last Name" value={newPatient.last_name} onChange={e => setNewPatient({ ...newPatient, last_name: e.target.value })} required style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
-                  <input name="birthdate" type="date" placeholder="Birthdate" value={newPatient.birthdate} onChange={e => setNewPatient({ ...newPatient, birthdate: e.target.value })} required style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
-                  <select name="sex" value={newPatient.sex} onChange={e => setNewPatient({ ...newPatient, sex: e.target.value })} required style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }}>
+            <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[2000]" onClick={() => setShowPatientModal(false)}>
+              <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[340px] max-w-sm w-full" onClick={e => e.stopPropagation()}>
+                <h3 className="text-sky-400 text-xl font-bold mb-4">Quick Add Patient</h3>
+                <form onSubmit={handleQuickAddPatient} className="flex flex-col gap-3">
+                  <input name="first_name" placeholder="First Name" value={newPatient.first_name} onChange={e => setNewPatient({ ...newPatient, first_name: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
+                  <input name="last_name" placeholder="Last Name" value={newPatient.last_name} onChange={e => setNewPatient({ ...newPatient, last_name: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
+                  <input name="birthdate" type="date" placeholder="Birthdate" value={newPatient.birthdate} onChange={e => setNewPatient({ ...newPatient, birthdate: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
+                  <select name="sex" value={newPatient.sex} onChange={e => setNewPatient({ ...newPatient, sex: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]">
                     <option value="">Sex</option>
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
                     <option value="Other">Other</option>
                   </select>
-                  <input name="hospital_registration_number" placeholder="Hospital Registration #" value={newPatient.hospital_registration_number} onChange={e => setNewPatient({ ...newPatient, hospital_registration_number: e.target.value })} required style={{ padding: 8, borderRadius: 6, border: '1px solid #d1e7ef' }} />
-                  <div style={{ marginTop: 8 }}>
-                    <button type="submit" style={{ background: '#00b6e9', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 18px', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', marginRight: 8 }} disabled={patientLoading}>Save Patient</button>
-                    <button type="button" onClick={() => setShowPatientModal(false)} style={{ background: '#e6f6fb', color: '#00b6e9', border: '1px solid #00b6e9', borderRadius: 6, padding: '8px 18px', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' }} disabled={patientLoading}>Cancel</button>
+                  <input name="hospital_registration_number" placeholder="Hospital Registration #" value={newPatient.hospital_registration_number} onChange={e => setNewPatient({ ...newPatient, hospital_registration_number: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
+                  <div className="mt-2 flex gap-2">
+                    <button type="submit" className={buttonClass + ' mr-2'} disabled={patientLoading}>Save Patient</button>
+                    <button type="button" onClick={() => setShowPatientModal(false)} className={secondaryButtonClass} disabled={patientLoading}>Cancel</button>
                   </div>
                 </form>
               </div>

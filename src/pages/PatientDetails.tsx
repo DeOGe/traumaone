@@ -169,6 +169,10 @@ export default function PatientDetails() {
           marginBottom: 40,
           overflow: 'hidden',
           minHeight: 220,
+          width: '100%',
+          maxWidth: 1000,
+          marginLeft: 'auto',
+          marginRight: 'auto',
         }}>
           {/* Left: Profile Image and Basic Info */}
           <div style={{
@@ -183,6 +187,7 @@ export default function PatientDetails() {
             borderTopLeftRadius: '28px',
             borderBottomLeftRadius: '28px',
             borderRight: '1px solid #eaf6fa',
+            flexShrink: 0,
           }}>
             <div style={{
               width: 100,
@@ -215,7 +220,7 @@ export default function PatientDetails() {
             </button>
           </div>
           {/* Right: Chart Info */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 40px' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '32px 40px', minWidth: 0 }}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',

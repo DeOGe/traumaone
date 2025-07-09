@@ -1,10 +1,13 @@
+
 import { Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';
 import PatientDetails from './pages/PatientDetails';
 import Admissions from './pages/Admissions';
+import AdmissionDetails from './pages/AdmissionDetails';
 import ProtectedRoute from './components/ProtectedRoute';
+import './app.css'
 
 function App() {
   return (
@@ -39,6 +42,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Admissions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admission/:id"
+        element={
+          <ProtectedRoute>
+            <AdmissionDetails />
           </ProtectedRoute>
         }
       />
