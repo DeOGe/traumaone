@@ -1,5 +1,5 @@
 
-import React from 'react';
+// ...existing code...
 import Layout from '../components/Layout';
 
 function StatCard({ title, value }: { title: string; value: string | number }) {
@@ -46,8 +46,8 @@ function PatientFiles() {
     <div className="bg-white rounded-2xl shadow-lg p-7 border border-[#eaf6fa]">
       <div className="font-semibold text-[#222c36] mb-3">Patient Files</div>
       <ul className="m-0 p-0 list-none text-[15px]">
-        {files.map((f, i) => (
-          <li key={f + i} className="flex items-center mb-2 last:mb-0">
+        {files.map((f) => (
+          <li key={f} className="flex items-center mb-2 last:mb-0">
             <span className="text-[#00b6e9] mr-2">📄</span> {f}
           </li>
         ))}
@@ -66,7 +66,7 @@ function RecentActivity() {
     <div className="bg-white rounded-2xl shadow-lg p-7 min-h-[180px] border border-[#eaf6fa]">
       <div className="font-semibold text-[#222c36] mb-3">Recent Activity</div>
       <ul className="m-0 p-0 list-none text-base text-[#222c36]">
-        {activity.map((a, i) => (
+        {activity.map((a) => (
           <li key={a} className="mb-2 last:mb-0"><span className="text-[#00b6e9] mr-2">•</span>{a}</li>
         ))}
       </ul>

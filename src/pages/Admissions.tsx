@@ -88,7 +88,7 @@ export default function Admissions() {
     hospital_registration_number: '',
   });
   const [patientLoading, setPatientLoading] = useState(false);
-  const [showDetails, setShowDetails] = useState<string | null>(null); // admission id
+  // const [showDetails, setShowDetails] = useState<string | null>(null); // admission id
   const [wizardStep, setWizardStep] = useState(0);
   const [formError, setFormError] = useState(''); // Form validation error message
   const [filterDate, setFilterDate] = useState('');
@@ -160,7 +160,7 @@ export default function Admissions() {
       setEditId(null);
     }
     setShowForm(true);
-    setShowDetails(null);
+    // setShowDetails(null);
     setWizardStep(0);
   }
 

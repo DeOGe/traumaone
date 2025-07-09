@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 // Utility to format admission and patient data for copying (chat-friendly)
 function formatAdmissionForChat(patient: Patient, admission: Admission): string {
   return `*Patient Information:*
