@@ -1,54 +1,20 @@
-
 import { useEffect, useState } from 'react';
-// Utility to format admission and patient data for copying (chat-friendly)
-function formatAdmissionForChat(patient: Patient, admission: Admission): string {
-  return `*Patient Information:*
-Name: ${patient.first_name} ${patient.last_name}
-Sex: ${patient.sex}
-Age: ${getAge(patient.birthdate)}
-Registered: ${patient.birthdate ? new Date(patient.birthdate).toLocaleDateString() : '-'}
-Patient ID: ${patient.id}
-Hospital Reg. #: ${patient.hospital_registration_number}
-
-*Admission Details:*
-Admission ID: ${admission.id}
-Status: ${admission.status || 'ADMITTED'}
-Created: ${admission.created_at ? new Date(admission.created_at).toLocaleString() : '-'}
-
-*Injury & Admission:*
-Chief Complaint: ${admission.chief_complaint}
-Nature of Injury: ${admission.nature_of_injury}
-Date/Time of Injury: ${admission.date_of_injury} ${admission.time_of_injury}
-Place of Injury: ${admission.place_of_injury}
-
-*History:*
-History of Present Illness: ${admission.history_of_present_illness}
-Past Medical History: ${admission.past_medical_history}
-Personal Social History: ${admission.personal_social_history}
-Obstetric/Gynecologic History: ${admission.obstetric_gynecologic_history}
-
-*Vitals:*
-Blood Pressure: ${admission.blood_pressure}
-HR: ${admission.hr}
-RR: ${admission.rr}
-SpO2: ${admission.spo2}
-Temperature: ${admission.temperature}
-
-*Exam & Labs:*
-Physical Examination: ${admission.physical_examination}
-Imaging Findings: ${admission.imaging_findings}
-Laboratory: ${admission.laboratory}
-
-*Diagnosis & Plan:*
-Diagnosis: ${admission.diagnosis}
-Initial Management: ${admission.initial_management}
-Surgical Plan: ${admission.surgical_plan}
-`;
-}
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import Layout from '../components/Layout';
 import Card from '../components/Card';
+
+// DRY InfoItem component
+function InfoItem({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="mb-2">
+      <div className="text-xs uppercase tracking-wide text-slate-400 font-semibold mb-1">{label}</div>
+      <div className="text-base text-[#222c36] bg-slate-50 rounded px-3 py-2 min-h-[32px] break-words border border-slate-100">
+        {value ? value : <span className="text-slate-300">—</span>}
+      </div>
+    </div>
+  );
+}
 
 // Utility to calculate age from birthdate string (YYYY-MM-DD)
 function getAge(birthdate?: string): string | number {
@@ -63,16 +29,54 @@ function getAge(birthdate?: string): string | number {
   return age;
 }
 
-// InfoItem component for consistent display (plain JS, no destructuring, JSX-based, defined before main component)
-function InfoItem(props: { label: string; value?: string }) {
-  return (
-    <div className="mb-2">
-      <div className="text-xs uppercase tracking-wide text-slate-400 font-semibold mb-1">{props.label}</div>
-      <div className="text-base text-[#222c36] bg-slate-50 rounded px-3 py-2 min-h-[32px] break-words border border-slate-100">
-        {props.value ? props.value : <span className="text-slate-300">—</span>}
-      </div>
-    </div>
-  );
+// DRY section generator for copy
+function formatAdmissionForChat(patient: Patient, admission: Admission): string {
+  const section = (title: string, items: [string, string | undefined][]) =>
+    `*${title}:*\n` + items.map(([k, v]) => `${k}: ${v || '-'}`).join('\n');
+  return [
+    section('Patient Information', [
+      ['Name', `${patient.first_name} ${patient.last_name}`],
+      ['Sex', patient.sex],
+      ['Age', String(getAge(patient.birthdate))],
+      ['Registered', patient.birthdate ? new Date(patient.birthdate).toLocaleDateString() : '-'],
+      ['Patient ID', patient.id],
+      ['Hospital Reg. #', patient.hospital_registration_number],
+    ]),
+    section('Admission Details', [
+      ['Admission ID', admission.id],
+      ['Status', admission.status || 'ADMITTED'],
+      ['Created', admission.created_at ? new Date(admission.created_at).toLocaleString() : '-'],
+    ]),
+    section('Injury & Admission', [
+      ['Chief Complaint', admission.chief_complaint],
+      ['Nature of Injury', admission.nature_of_injury],
+      ['Date/Time of Injury', `${admission.date_of_injury} ${admission.time_of_injury}`],
+      ['Place of Injury', admission.place_of_injury],
+    ]),
+    section('History', [
+      ['History of Present Illness', admission.history_of_present_illness],
+      ['Past Medical History', admission.past_medical_history],
+      ['Personal Social History', admission.personal_social_history],
+      ['Obstetric/Gynecologic History', admission.obstetric_gynecologic_history],
+    ]),
+    section('Vitals', [
+      ['Blood Pressure', admission.blood_pressure],
+      ['HR', admission.hr],
+      ['RR', admission.rr],
+      ['SpO2', admission.spo2],
+      ['Temperature', admission.temperature],
+    ]),
+    section('Exam & Labs', [
+      ['Physical Examination', admission.physical_examination],
+      ['Imaging Findings', admission.imaging_findings],
+      ['Laboratory', admission.laboratory],
+    ]),
+    section('Diagnosis & Plan', [
+      ['Diagnosis', admission.diagnosis],
+      ['Initial Management', admission.initial_management],
+      ['Surgical Plan', admission.surgical_plan],
+    ]),
+  ].join('\n\n');
 }
 
 interface Admission {
