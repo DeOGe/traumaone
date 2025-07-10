@@ -7,7 +7,7 @@ import PatientDetails from './pages/PatientDetails';
 import Admissions from './pages/Admissions';
 import AdmissionDetails from './pages/AdmissionDetails';
 import ProtectedRoute from './components/ProtectedRoute';
-import './app.css'
+import './App.css'
 
 function App() {
   return (
