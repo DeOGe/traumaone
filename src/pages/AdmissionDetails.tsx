@@ -1,20 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import Layout from '../components/Layout';
 import Card from '../components/Card';
 
-// DRY InfoItem component
-function InfoItem({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="mb-2">
-      <div className="text-xs uppercase tracking-wide text-slate-400 font-semibold mb-1">{label}</div>
-      <div className="text-base text-[#222c36] bg-slate-50 rounded px-3 py-2 min-h-[32px] break-words border border-slate-100">
-        {value ? value : <span className="text-slate-300">—</span>}
-      </div>
-    </div>
-  );
-}
+// ...existing code...
 
 // Utility to calculate age from birthdate string (YYYY-MM-DD)
 // Utility to format date as '11 Jul 2025'
@@ -138,7 +128,7 @@ export default function AdmissionDetails() {
   const [editForm, setEditForm] = useState<Partial<Admission>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  // Removed unused navigate
   const [copySuccess, setCopySuccess] = useState(false);
   const [dischargeLoading, setDischargeLoading] = useState(false);
 

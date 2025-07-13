@@ -36,7 +36,7 @@ interface Patient {
   id: string;
   first_name: string;
   last_name: string;
-  birthdate: string;
+  birthdate: string | null;
   sex: string;
   hospital_registration_number: string;
 }
@@ -84,7 +84,7 @@ export default function Admissions() {
   const [newPatient, setNewPatient] = useState({
     first_name: '',
     last_name: '',
-    birthdate: '',
+    birthdate: null as string | null,
     sex: '',
     hospital_registration_number: '',
   });
@@ -153,7 +153,7 @@ export default function Admissions() {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function openForm(admission: Admission | null = null) {
+  function openForm() {
     setForm(initialAdmission);
     setShowForm(true);
     setWizardStep(0);
@@ -223,7 +223,7 @@ export default function Admissions() {
     setPatientLoading(true);
     // Remove empty birthdate before insert to avoid invalid date error
     const patientToInsert = { ...newPatient };
-    if (!patientToInsert.birthdate) delete patientToInsert.birthdate;
+    if (!patientToInsert.birthdate) patientToInsert.birthdate = null;
     const { data, error } = await supabase
       .from('patients')
       .insert([patientToInsert])

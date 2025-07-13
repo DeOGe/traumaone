@@ -8,7 +8,7 @@ interface PatientFormModalProps {
   form: {
     first_name: string;
     last_name: string;
-    birthdate: string;
+    birthdate: string | null;
     sex: string;
     hospital_registration_number: string;
     blood_type?: string;
@@ -44,7 +44,7 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <label htmlFor="birthdate" className="w-32 text-sm font-semibold text-[#222c36] text-right">Birthdate</label>
-            <input id="birthdate" name="birthdate" type="date" value={form.birthdate} onChange={e => setForm((f: any) => ({ ...f, birthdate: e.target.value }))} className="flex-1 px-3 py-2 rounded-md border border-[#d1e7ef] focus:ring-2 focus:ring-sky-200" />
+            <input id="birthdate" name="birthdate" type="date" value={form.birthdate ?? ''} onChange={e => setForm((f: any) => ({ ...f, birthdate: e.target.value }))} className="flex-1 px-3 py-2 rounded-md border border-[#d1e7ef] focus:ring-2 focus:ring-sky-200" />
           </div>
           <div className="flex items-center gap-3">
             <label htmlFor="sex" className="w-32 text-sm font-semibold text-[#222c36] text-right">Sex <span className="text-red-500">*</span></label>
