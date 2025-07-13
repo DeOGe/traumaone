@@ -2,36 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import Layout from '../components/Layout';
+import PatientFormModal from '../components/PatientFormModal';
 import PatientAdmissionHistory from './PatientAdmissionHistory';
 
 
 const PAGE_SIZE = 15;
 
-async function uploadProfilePicture(file: File, patientId: string): Promise<string | null> {
-  const fileExt = file.name.split('.').pop();
-  const filePath = `${patientId}.${fileExt}`;
-
-  // Ensure user is signed in
-  const { data: { session } } = await supabase.auth.getSession();
-  console.log(session);
-  if (!session) {
-    console.error('User is not signed in');
-    return null;
-  }
-
-  // No need to manually set Authorization header; supabase-js handles it
-  const { error } = await supabase
-    .storage
-    .from('avatar')
-    .upload(filePath, file, { upsert: true });
-
-  if (error) {
-    console.error('Upload failed:', error.message);
-    return null;
-  }
-
-  return filePath;
-}
+// Profile picture upload removed
 
 
 type Patient = {
@@ -67,7 +44,7 @@ export default function Patients() {
     hospital_registration_number: '',
     blood_type: '',
   });
-  const [profileFile, setProfileFile] = useState<File | null>(null);
+  // Profile picture state removed
   const [editId, setEditId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -109,9 +86,7 @@ export default function Patients() {
     setFetching(false);
   }
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
+  // handleChange is no longer needed; PatientFormModal handles input changes
 
   function openNewPatientModal() {
     setForm({
@@ -122,12 +97,23 @@ export default function Patients() {
       hospital_registration_number: '',
       blood_type: '',
     });
-    setProfileFile(null);
     setEditId(null);
     setShowModal(true);
   }
 
-  // openEditModal is not used, so we can remove it or leave it for future use
+
+  function openEditPatientModal(patient: Patient) {
+    setForm({
+      first_name: patient.first_name || '',
+      last_name: patient.last_name || '',
+      birthdate: patient.birthdate || '',
+      sex: patient.sex || '',
+      hospital_registration_number: patient.hospital_registration_number || '',
+      blood_type: patient.blood_type || '',
+    });
+    setEditId(patient.id);
+    setShowModal(true);
+  }
 
   function closeModal() {
     setShowModal(false);
@@ -140,34 +126,35 @@ export default function Patients() {
       hospital_registration_number: '',
       blood_type: '',
     });
-    setProfileFile(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     let patientId = editId || crypto.randomUUID();
-    let profilePath = undefined;
-    // If a new file is selected, upload it and get the file path
-    if (profileFile) {
-      const uploadedPath = await uploadProfilePicture(profileFile, patientId);
-      if (uploadedPath) profilePath = uploadedPath;
-    }
+    // Prevent sending empty string for birthdate (should be null)
+    const formToSend = {
+      ...form,
+      birthdate: form.birthdate === '' ? null : form.birthdate,
+    };
     if (editId) {
       // Update
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('patients')
-        .update(profilePath ? { ...form, profile_picture: profilePath } : form)
-        .eq('id', editId);
+        .update(formToSend)
+        .eq('id', editId)
+        .select();
       if (!error) {
         await fetchPatients();
+        // Refresh selectedPatient with latest data
+        if (data && data[0]) setSelectedPatient(data[0]);
         closeModal();
       }
     } else {
       // Create
       const { error } = await supabase
         .from('patients')
-        .insert([{ ...form, ...(profilePath ? { profile_picture: profilePath } : {}), id: patientId }]);
+        .insert([{ ...formToSend, id: patientId }]);
       if (!error) {
         // If on last page and not full, stay, else go to first page
         if (patients.length < PAGE_SIZE) {
@@ -195,28 +182,7 @@ export default function Patients() {
   // Pagination controls
   const totalPages = Math.ceil(totalPatients / PAGE_SIZE);
 
-  // --- Details logic ---
-  // Edit profile picture for selected patient
-  async function handleProfilePictureUpdate(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!selectedPatient) return;
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLoading(true);
-    const uploadedPath = await uploadProfilePicture(file, selectedPatient.id);
-    if (uploadedPath) {
-      // Update patient record with new profile picture path
-      const { error } = await supabase
-        .from('patients')
-        .update({ profile_picture: uploadedPath })
-        .eq('id', selectedPatient.id);
-      if (!error) {
-        await fetchPatients();
-        // Optionally update selectedPatient in state
-        setSelectedPatient((prev) => prev ? { ...prev, profile_picture: uploadedPath } : prev);
-      }
-    }
-    setLoading(false);
-  }
+  // Profile picture update logic removed
 
   return (
     <Layout>
@@ -225,7 +191,7 @@ export default function Patients() {
           {/* Page Header */}
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-[#222c36] m-0 text-2xl font-bold">Patients</h2>
-            <button className="bg-[#00b6e9] text-white rounded-md px-5 py-2 font-semibold text-base hover:bg-[#009fcc] transition" onClick={openNewPatientModal}>+ New Patient</button>
+            <button className="bg-[#00b6e9] text-white rounded-md px-5 py-2 font-semibold text-base hover:bg-[#009fcc] transition" onClick={openNewPatientModal}>New Patient</button>
           </div>
           {/* Search and List Row */}
           <div className="flex gap-8 items-start">
@@ -303,59 +269,53 @@ export default function Patients() {
                 </div>
               ) : (
                 <div className="w-full max-w-[1000px] mx-auto">
-                  <div className="bg-white rounded-[28px] shadow-2xl border border-[#eaf6fa] mb-10 p-0 w-full max-w-full flex overflow-hidden min-h-[220px]">
-                    {/* Left: Profile Image and Basic Info */}
-                    <div className="w-[220px] min-w-[220px] bg-[#f6fbfd] flex flex-col items-center justify-center py-8 border-r border-[#eaf6fa]">
-                      <div className="w-[100px] h-[100px] rounded-full bg-[#e6f6fb] flex items-center justify-center text-[54px] text-[#b3d8e6] mb-4 relative overflow-hidden">
-                        {selectedPatient.profile_picture ? (
-                          <ProfileImageSignedUrl filePath={selectedPatient.profile_picture} />
-                        ) : (
-                          <span role="img" aria-label="Patient">🧑‍⚕️</span>
-                        )}
-                      </div>
-                      {/* Update profile picture button */}
-                      <div className="w-full flex justify-center mt-2">
-                        <label htmlFor="update-profile-picture" className="bg-[#00b6e9] bg-opacity-85 text-white text-center font-semibold text-sm px-5 py-2 cursor-pointer rounded-full shadow-md">
-                          Update Profile Picture
-                          <input
-                            id="update-profile-picture"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleProfilePictureUpdate}
-                            className="hidden"
-                            disabled={loading}
-                          />
-                        </label>
-                      </div>
-                      <div className="font-bold text-lg text-[#222c36] mb-1">{selectedPatient.first_name} {selectedPatient.last_name}</div>
-                      <div className="text-[#7a8fa4] text-xs mb-3">{selectedPatient.hospital_registration_number}</div>
+                  <div className="bg-white rounded-2xl shadow-lg border border-[#eaf6fa] mb-10 w-full max-w-full p-0 flex flex-col">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between px-8 pt-8 pb-2">
+                      <button
+                        className="ml-auto bg-[#e6f6fb] text-[#00b6e9] border border-[#00b6e9] rounded-md px-4 py-2 font-semibold text-sm hover:bg-[#d1e7ef] transition"
+                        onClick={() => openEditPatientModal(selectedPatient)}
+                      >
+                        Edit Patient
+                      </button>
                     </div>
-                    {/* Right: Chart Info */}
-                    <div className="flex-1 flex flex-col justify-center px-10 py-8 min-w-0">
-                      <div className="grid grid-cols-3 gap-x-8 gap-y-4 text-[15.5px] text-[#222c36] items-center">
-                        <div>
-                          <div className="text-[#7a8fa4] font-medium">Sex</div>
-                          <div className="font-bold">{selectedPatient.sex}</div>
+                    <div className="px-8 pb-8">
+                      <div className="mb-2 text-base font-semibold text-[#222c36]">Patient Record</div>
+                      <div className="bg-[#f9fafb] rounded-xl p-6 flex flex-col md:flex-row gap-8">
+                        {/* Left: Patient Summary */}
+
+                        <div className="w-full md:w-1/3 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#eaf6fa] pb-6 md:pb-0 md:pr-8">
+                          <div className="font-bold text-xl text-[#00b6e9] mb-1 text-center">{selectedPatient.last_name}, {selectedPatient.first_name}</div>
+                          <div className="text-lg text-[#222c36]">{selectedPatient.hospital_registration_number || " "}</div>
+                          <div className="text-md text-[#222c36]"> {selectedPatient.birthdate ? `AGE: ${new Date().getFullYear() - new Date(selectedPatient.birthdate).getFullYear()}` : " "}</div>
+                          <div className="text-md text-[#222c36]">SEX: {selectedPatient.sex}</div>
+
                         </div>
-                        <div>
-                          <div className="text-[#7a8fa4] font-medium">Age</div>
-                          <div className="font-bold">{selectedPatient.birthdate ? `${new Date().getFullYear() - new Date(selectedPatient.birthdate).getFullYear()}` : '-'}</div>
-                        </div>
-                        <div>
-                          <div className="text-[#7a8fa4] font-medium">Blood</div>
-                          <div className="font-bold">{selectedPatient.blood_type || '-'}</div>
-                        </div>
-                        <div>
-                          <div className="text-[#7a8fa4] font-medium">Registered Date</div>
-                          <div className="font-bold">{selectedPatient.created_at ? new Date(selectedPatient.created_at).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
-                        </div>
-                        <div>
-                          <div className="text-[#7a8fa4] font-medium">Patient ID</div>
-                          <div className="font-bold">{selectedPatient.id}</div>
-                        </div>
-                        <div>
-                          <div className="text-[#7a8fa4] font-medium">Hospital Reg. #</div>
-                          <div className="font-bold">{selectedPatient.hospital_registration_number}</div>
+                        {/* Right: Other Patient Info */}
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                          <div>
+                            <div className="text-[#7a8fa4] text-xs font-semibold mb-1">Last Name</div>
+                            <div className="font-bold text-base text-[#222c36]">{selectedPatient.last_name || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[#7a8fa4] text-xs font-semibold mb-1">First Name</div>
+                            <div className="font-bold text-base text-[#222c36]">{selectedPatient.first_name || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[#7a8fa4] text-xs font-semibold mb-1">Sex</div>
+                            <div className="font-bold text-base text-[#222c36]">{selectedPatient.sex || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[#7a8fa4] text-xs font-semibold mb-1">Birthdate</div>
+                            <div className="font-bold text-base text-[#222c36]">{selectedPatient.birthdate ? new Date(selectedPatient.birthdate).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[#7a8fa4] text-xs font-semibold mb-1">Blood Type</div>
+                            <div className="font-bold text-base text-[#222c36]">{selectedPatient.blood_type || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[#7a8fa4] text-xs font-semibold mb-1">Registration Date</div>
+                            <div className="font-bold text-base text-[#222c36]">{selectedPatient.created_at ? new Date(selectedPatient.created_at).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -368,50 +328,16 @@ export default function Patients() {
               )}
               {/* New/Edit Patient Modal */}
               {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-[2000]" onClick={closeModal}>
-                  <div className="bg-white rounded-2xl shadow-2xl p-9 min-w-[340px] max-w-[420px] w-full" onClick={e => e.stopPropagation()}>
-                    <h3 className="text-[#00b6e9] mb-4 font-bold text-lg">{editId ? 'Edit Patient' : 'New Patient'}</h3>
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-                      {/* Profile Picture Upload - Interactive */}
-                      <div className="flex flex-col items-center mb-2.5">
-                        <label htmlFor="profile-upload" className="cursor-pointer flex flex-col items-center">
-                          <div className="w-[110px] h-[110px] rounded-full bg-[#e6f6fb] flex items-center justify-center border-4 border-[#b3d8e6] mb-2.5 overflow-hidden relative">
-                            {profileFile ? (
-                              <img src={URL.createObjectURL(profileFile)} alt="Preview" className="w-full h-full object-cover" />
-                            ) : (
-                              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#b3d8e6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M16 16v1a4 4 0 0 1-8 0v-1"/></svg>
-                            )}
-                            <div className="absolute bottom-0 left-0 w-full bg-[#00b6e9] bg-opacity-85 text-white text-center font-semibold text-sm py-1.5 opacity-95 rounded-b-full">
-                              Upload Image <span className="ml-1 text-base">⭳</span>
-                            </div>
-                          </div>
-                          <input
-                            id="profile-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={e => setProfileFile(e.target.files?.[0] || null)}
-                            className="hidden"
-                          />
-                        </label>
-                      </div>
-                      <input name="first_name" placeholder="First Name" value={form.first_name} onChange={handleChange} required className="px-2 py-2 rounded-md border border-[#d1e7ef]" />
-                      <input name="last_name" placeholder="Last Name" value={form.last_name} onChange={handleChange} required className="px-2 py-2 rounded-md border border-[#d1e7ef]" />
-                      <input name="birthdate" type="date" placeholder="Birthdate" value={form.birthdate} onChange={handleChange} required className="px-2 py-2 rounded-md border border-[#d1e7ef]" />
-                      <select name="sex" value={form.sex} onChange={handleChange} required className="px-2 py-2 rounded-md border border-[#d1e7ef]">
-                        <option value="">Sex</option>
-                        <option value="Female">Female</option>
-                        <option value="Male">Male</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      <input name="hospital_registration_number" placeholder="Hospital Registration #" value={form.hospital_registration_number} onChange={handleChange} required className="px-2 py-2 rounded-md border border-[#d1e7ef]" />
-                      <input name="blood_type" placeholder="Blood Type" value={form.blood_type || ''} onChange={handleChange} className="px-2 py-2 rounded-md border border-[#d1e7ef]" />
-                      <div className="mt-2 flex justify-end gap-2.5">
-                        <button type="submit" className="bg-[#00b6e9] text-white rounded-md px-5 py-2 font-semibold min-w-[110px]" disabled={loading}>{editId ? 'Update' : 'Save'}</button>
-                        <button type="button" onClick={closeModal} className="bg-[#e6f6fb] text-[#00b6e9] border border-[#00b6e9] rounded-md px-5 py-2 font-semibold min-w-[110px]" disabled={loading}>Cancel</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
+                <PatientFormModal
+                  open={showModal}
+                  onClose={closeModal}
+                  onSubmit={handleSubmit}
+                  loading={loading}
+                  form={form}
+                  setForm={setForm}
+                  title={editId ? 'Edit' : 'New Patient'}
+                  submitLabel={editId ? 'Update' : 'Save'}
+                />
               )}
             </div>
           </div>
@@ -420,38 +346,4 @@ export default function Patients() {
     </Layout>
   );
 }
-// Helper component to fetch and display a signed URL for a profile image
-function ProfileImageSignedUrl({ filePath }: { filePath: string }) {
-  const [signedUrl, setSignedUrl] = React.useState<string | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-    async function getSignedUrl() {
-      setError(null);
-      const { data, error } = await supabase.storage.from('avatar').createSignedUrl(filePath, 60 * 60); // 1 hour expiry
-      if (error) {
-        if (isMounted) setError('Could not load image');
-      } else {
-        if (isMounted) setSignedUrl(data?.signedUrl || null);
-      }
-    }
-    getSignedUrl();
-    return () => { isMounted = false; };
-  }, [filePath]);
-
-  if (error) {
-    return <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#ffeaea', color: '#e74c3c', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, textAlign: 'center' }}>Image unavailable</div>;
-  }
-  if (!signedUrl) {
-    return <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#e6f6fb' }} />;
-  }
-  return (
-    <img
-      src={signedUrl}
-      alt="Profile"
-      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-      onError={() => setError('Could not load image')}
-    />
-  );
-}
+// Profile image helper component removed

@@ -42,31 +42,66 @@ export default function PatientAdmissionHistory({ patientId }: { patientId: stri
   }, [patientId]);
 
   if (loading) return <div style={{ marginTop: 18, color: '#7a8fa4' }}>Loading admission history...</div>;
-  if (!admissions.length) return <div style={{ marginTop: 18, color: '#7a8fa4' }}>No admission history.</div>;
+  if (!admissions.length) return <div style={{...cardStyle, marginTop: 18, color: '#7a8fa4' }}>No admission history.</div>;
 
   return (
-    <div style={{ ...cardStyle, marginTop: 18 }}>
-      <h4 style={{ color: '#00b6e9', marginBottom: 12 }}>Admission History</h4>
-      <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
-        <thead>
-          <tr>
-            <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '8px 6px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Date/Time</th>
-            <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '8px 6px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Chief Complaint</th>
-            <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '8px 6px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Diagnosis</th>
-            <th style={{ background: '#e6f6fb', color: '#222c36', fontWeight: 600, padding: '8px 6px', borderBottom: '1.5px solid #d1e7ef', textAlign: 'left' }}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {admissions.map(adm => (
-            <tr key={adm.id} style={{ background: '#fafdff' }}>
-              <td style={{ padding: '8px 6px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.date_of_injury} {adm.time_of_injury}</td>
-              <td style={{ padding: '8px 6px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.chief_complaint}</td>
-              <td style={{ padding: '8px 6px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.diagnosis}</td>
-              <td style={{ padding: '8px 6px', borderBottom: '1px solid #eaf6fa', fontSize: '1rem' }}>{adm.status || 'ADMITTED'}</td>
+    <div className="bg-white rounded-2xl shadow-lg border border-[#eaf6fa] mt-5 mb-6 w-full max-w-[1000px] mx-auto p-0">
+      <h4 className="text-[#00b6e9] font-bold text-lg px-8 pt-8 pb-2">Admission History</h4>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white">
+          <thead>
+            <tr>
+              <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Date & Time of Injury</th>
+              <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Chief Complaint</th>
+              <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Diagnosis</th>
+              <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {admissions.map(adm => (
+              <tr key={adm.id} className="hover:bg-[#f3fafd] transition">
+                <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px] whitespace-nowrap">
+                  {(() => {
+                    if (!adm.date_of_injury) return '-';
+                    // Combine date and time, fallback to just date if time missing
+                    const dateStr = adm.date_of_injury;
+                    const timeStr = adm.time_of_injury || '';
+                    // Parse date and time
+                    let dateObj: Date | null = null;
+                    if (dateStr && timeStr) {
+                      dateObj = new Date(`${dateStr}T${timeStr}`);
+                    } else if (dateStr) {
+                      dateObj = new Date(dateStr);
+                    }
+                    if (!dateObj || isNaN(dateObj.getTime())) return '-';
+                    // Format: Fri, 12 Jul 2024, 14:30
+                    const datePart = dateObj.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+                    const timePart = timeStr ? dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+                    return `${datePart}${timePart ? ' ' + timePart : ''}`;
+                  })()}
+                </td>
+                <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px]">{adm.chief_complaint}</td>
+                <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px] max-w-[180px]">
+                  <div
+                    className="overflow-hidden whitespace-nowrap text-ellipsis"
+                    style={{ maxWidth: 160 }}
+                    title={adm.diagnosis}
+                  >
+                    {adm.diagnosis}
+                  </div>
+                </td>
+                <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px]">
+                  {adm.status === 'DISCHARGED' ? (
+                    <span className="bg-[#e6f6fb] text-[#00b6e9] px-3 py-1 rounded-md text-xs font-semibold">Discharged</span>
+                  ) : (
+                    <span className="bg-[#eaf6fa] text-[#7a8fa4] px-3 py-1 rounded-md text-xs font-semibold">Admitted</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

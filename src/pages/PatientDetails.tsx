@@ -174,7 +174,7 @@ export default function PatientDetails() {
           marginLeft: 'auto',
           marginRight: 'auto',
         }}>
-          {/* Left: Profile Image and Basic Info */}
+          {/* Left: Patient Summary */}
           <div style={{
             width: 220,
             minWidth: 220,
@@ -188,23 +188,13 @@ export default function PatientDetails() {
             borderBottomLeftRadius: '28px',
             borderRight: '1px solid #eaf6fa',
             flexShrink: 0,
+            gap: 10,
           }}>
-            <div style={{
-              width: 100,
-              height: 100,
-              borderRadius: '50%',
-              background: '#e6f6fb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 54,
-              color: '#b3d8e6',
-              marginBottom: 18,
-            }}>
-              <span role="img" aria-label="Patient">🧑‍⚕️</span>
-            </div>
-            <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#222c36', marginBottom: 4 }}>{patient.first_name} {patient.last_name}</div>
-            <div style={{ color: '#7a8fa4', fontSize: 14, marginBottom: 12 }}>{patient.hospital_registration_number}</div>
+            <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#222c36', marginBottom: 2, textAlign: 'center' }}>{patient.first_name} {patient.last_name}</div>
+            <div style={{ color: '#7a8fa4', fontSize: 15, fontWeight: 500 }}>Age</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#222c36', marginBottom: 2 }}>{patient.birthdate ? `${new Date().getFullYear() - new Date(patient.birthdate).getFullYear()}` : '-'}</div>
+            <div style={{ color: '#7a8fa4', fontSize: 15, fontWeight: 500 }}>Sex</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: '#222c36' }}>{patient.sex}</div>
             <button style={{
               ...buttonStyle,
               background: '#fff',
@@ -215,6 +205,7 @@ export default function PatientDetails() {
               borderRadius: 8,
               padding: '7px 20px',
               margin: 0,
+              marginTop: 18,
             }} onClick={() => setEditMode(true)}>
               Edit Profile
             </button>

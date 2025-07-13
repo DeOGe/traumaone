@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PatientFormModal from '../components/PatientFormModal';
 import { supabase } from '../supabaseClient';
 import Layout from '../components/Layout';
 import Card from '../components/Card';
@@ -77,7 +78,7 @@ export default function Admissions() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Admission>(initialAdmission);
-  const [editId, setEditId] = useState<string | null>(null);
+  // Removed editId state: editing is now only in AdmissionDetails
   const [loading, setLoading] = useState(false);
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [newPatient, setNewPatient] = useState({
@@ -95,6 +96,7 @@ export default function Admissions() {
   const [filterStatus, setFilterStatus] = useState('ADMITTED');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Fetch admissions with search
   async function fetchAdmissions() {
@@ -152,21 +154,13 @@ export default function Admissions() {
   }
 
   function openForm(admission: Admission | null = null) {
-    if (admission) {
-      setForm({ ...admission });
-      setEditId(admission.id || null);
-    } else {
-      setForm(initialAdmission);
-      setEditId(null);
-    }
+    setForm(initialAdmission);
     setShowForm(true);
-    // setShowDetails(null);
     setWizardStep(0);
   }
 
   function closeForm() {
     setShowForm(false);
-    setEditId(null);
     setForm(initialAdmission);
     setWizardStep(0);
   }
@@ -210,27 +204,15 @@ export default function Admissions() {
       setFormError('Temperature must be a number.');
       return;
     }
-    if (editId) {
-      // Update
-      const { error } = await supabase
-        .from('admissions')
-        .update(form)
-        .eq('id', editId);
-      if (!error) {
-        await fetchAdmissions();
-        closeForm();
-      }
+    // Only create new admissions here; editing is handled in AdmissionDetails
+    const { error } = await supabase
+      .from('admissions')
+      .insert([form]);
+    if (error) {
+      setFormError(error.message);
     } else {
-      // Create
-      const { error } = await supabase
-        .from('admissions')
-        .insert([form]);
-      if (error) {
-        setFormError(error.message);
-      } else {
-        await fetchAdmissions();
-        closeForm();
-      }
+      await fetchAdmissions();
+      closeForm();
     }
     setLoading(false);
   }
@@ -239,9 +221,12 @@ export default function Admissions() {
   async function handleQuickAddPatient(e: React.FormEvent) {
     e.preventDefault();
     setPatientLoading(true);
+    // Remove empty birthdate before insert to avoid invalid date error
+    const patientToInsert = { ...newPatient };
+    if (!patientToInsert.birthdate) delete patientToInsert.birthdate;
     const { data, error } = await supabase
       .from('patients')
-      .insert([newPatient])
+      .insert([patientToInsert])
       .select();
     if (!error && data && data[0]) {
       setPatients([data[0], ...patients]);
@@ -302,14 +287,14 @@ export default function Admissions() {
               </select>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse mt-6 bg-white min-w-[900px]">
+              <table className="min-w-full bg-white mt-6 rounded-2xl shadow-lg border border-[#eaf6fa]">
                 <thead>
                   <tr>
-                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Patient</th>
-                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Chief Complaint</th>
-                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Date/Time of Injury</th>
-                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Diagnosis</th>
-                    <th className="bg-[#e6f6fb] text-[#222c36] font-semibold py-3 px-2 border-b border-[#d1e7ef] text-left">Actions</th>
+                    <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Patient</th>
+                    <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Date & Time of Injury</th>
+                    <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Chief Complaint</th>
+                    <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Diagnosis</th>
+                    <th className="bg-[#fafdff] text-[#222c36] font-semibold px-6 py-3 border-b border-[#eaf6fa] text-left text-sm">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,33 +304,50 @@ export default function Admissions() {
                     </tr>
                   ) : (
                     admissions.map(adm => (
-                      <tr key={adm.id} className="bg-[#fafdff] rounded-lg">
-                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{patients.find(p => p.id === adm.patient_id)?.first_name || 'Unknown'} {patients.find(p => p.id === adm.patient_id)?.last_name || ''}</td>
-                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{adm.chief_complaint}</td>
-                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{adm.date_of_injury} {adm.time_of_injury}</td>
-                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">{adm.diagnosis}</td>
-                        <td className="py-2 px-2 border-b border-[#eaf6fa] text-base">
+                      <tr key={adm.id} className="hover:bg-[#f3fafd] transition">
+                        <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px] whitespace-nowrap">
+                          {patients.find(p => p.id === adm.patient_id)?.first_name || 'Unknown'} {patients.find(p => p.id === adm.patient_id)?.last_name || ''}
+                        </td>
+                        <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px] whitespace-nowrap">
+                          {(() => {
+                            if (!adm.date_of_injury) return '-';
+                            const dateStr = adm.date_of_injury;
+                            const timeStr = adm.time_of_injury || '';
+                            let dateObj: Date | null = null;
+                            if (dateStr && timeStr) {
+                              dateObj = new Date(`${dateStr}T${timeStr}`);
+                            } else if (dateStr) {
+                              dateObj = new Date(dateStr);
+                            }
+                            if (!dateObj || isNaN(dateObj.getTime())) return '-';
+                            // Format: Fri, 12 Jul 2024, 14:30
+                            const datePart = dateObj.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+                            const timePart = timeStr ? dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+                            return `${datePart}${timePart ? ', ' + timePart : ''}`;
+                          })()}
+                        </td>
+                        <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px]">{adm.chief_complaint}</td>
+                        <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px] max-w-[180px]">
+                          <div
+                            className="overflow-hidden whitespace-nowrap text-ellipsis"
+                            style={{ maxWidth: 160 }}
+                            title={adm.diagnosis}
+                          >
+                            {adm.diagnosis}
+                          </div>
+                        </td>
+                        <td className="px-6 py-3 border-b border-[#eaf6fa] text-[15px]">
                           <a
                             href={`/admission/${adm.id}`}
-                            className={buttonClass + ' mr-2 inline-block text-center'}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-[#eaf6fa] bg-white text-sky-400 hover:bg-[#fafdff] transition-colors shadow-sm"
+                            title="View Admission Details"
                           >
-                            Show
+                            {/* Eye icon */}
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path d="M1.5 12s3.5-7 10.5-7 10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor"/>
+                              <circle cx="12" cy="12" r="3" stroke="currentColor"/>
+                            </svg>
                           </a>
-                          <button
-                            className={secondaryButtonClass + ' mr-2'}
-                            onClick={() => openForm(adm)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className={dangerButtonClass}
-                            onClick={async () => {
-                              await supabase.from('admissions').update({ status: 'DISCHARGE' }).eq('id', adm.id);
-                              await fetchAdmissions();
-                            }}
-                          >
-                            Discharge
-                          </button>
                         </td>
                       </tr>
                     ))
@@ -360,16 +362,16 @@ export default function Admissions() {
           {/* Admission Modal Wizard */}
           {showForm && (
             <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[2000]" onClick={closeForm}>
-              <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[420px] max-w-lg w-full min-h-[540px] flex flex-col" onClick={e => e.stopPropagation()}>
-                <h3 className="text-sky-400 text-xl font-bold mb-4">{editId ? 'Update Admission' : 'New Admission'}</h3>
+              <div className="bg-white rounded-2xl shadow-2xl p-4 min-w-[320px] max-w-md w-full flex flex-col max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <h3 className="text-sky-400 text-xl font-bold mb-3">New Admission</h3>
                 {/* Wizard Tabs */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-1 mb-4">
                   {['Patient & Injury', 'History', 'Vitals', 'Exam & Labs', 'Diagnosis'].map((label, idx) => (
                     <button
                       key={label}
                       type="button"
                       onClick={() => setWizardStep(idx)}
-                      className={`flex-1 py-2 border-b-2 text-base font-semibold transition-colors duration-150 ${
+                      className={`flex-1 py-1 border-b-2 text-sm font-semibold transition-colors duration-150 ${
                         wizardStep === idx
                           ? 'border-sky-400 text-sky-400 bg-sky-50'
                           : 'border-[#e6f6fb] text-slate-400 bg-transparent hover:bg-sky-50'
@@ -385,13 +387,13 @@ export default function Admissions() {
                   {formError && (
                     <div className="text-red-500 font-semibold mb-2 text-center">{formError}</div>
                   )}
-                  <div className="flex-1 flex flex-col justify-start">
+                  <div className="flex-1 flex flex-col justify-start gap-2">
                     {/* Wizard Steps */}
                     {wizardStep === 0 && (
                       <div className="flex flex-col gap-4">
                         <label>Patient <span className="text-red-500">*</span></label>
-                        <div className="flex items-center gap-2">
-                          <div className="min-w-[260px] flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="min-w-[180px] flex-1">
                             <Select
                               options={patients.map(p => ({
                                 value: p.id,
@@ -417,12 +419,12 @@ export default function Admissions() {
                         <input name="chief_complaint" value={form.chief_complaint} onChange={handleChange} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
                         <label>Nature of Injury</label>
                         <input name="nature_of_injury" value={form.nature_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
-                        <div className="flex gap-3">
-                          <div className="flex-1">
+                        <div className="flex gap-2 flex-wrap">
+                          <div className="flex-1 min-w-[120px]">
                             <label>Date of Injury</label>
                             <input name="date_of_injury" type="date" value={form.date_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] w-full" />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-[120px]">
                             <label>Time of Injury</label>
                             <input name="time_of_injury" type="time" value={form.time_of_injury} onChange={handleChange} className="px-3 py-2 rounded-md border border-[#d1e7ef] w-full" />
                           </div>
@@ -479,12 +481,44 @@ export default function Admissions() {
                     )}
                   </div>
                   {/* Wizard Navigation */}
-                  <div className="flex justify-end gap-3 mt-6">
-                    <button type="button" className={secondaryButtonClass} onClick={closeForm} disabled={loading}>Cancel</button>
+                  <div className="flex justify-end gap-2 mt-4 flex-wrap">
+                    <button
+                      type="button"
+                      className={secondaryButtonClass}
+                      onClick={() => setShowCancelConfirm(true)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+          {/* Custom Cancel Confirmation Modal */}
+          {showCancelConfirm && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[3000]">
+              <div className="bg-white rounded-xl shadow-2xl p-8 min-w-[320px] max-w-sm w-full flex flex-col items-center">
+                <div className="text-lg font-semibold text-[#222c36] mb-4 text-center">Are you sure you want to cancel?<br/>All unsaved changes will be lost.</div>
+                <div className="flex gap-4 mt-2">
+                  <button
+                    className={dangerButtonClass}
+                    onClick={() => {
+                      setShowCancelConfirm(false);
+                      closeForm();
+                    }}
+                  >
+                    Yes, Cancel
+                  </button>
+                  <button
+                    className={secondaryButtonClass}
+                    onClick={() => setShowCancelConfirm(false)}
+                  >
+                    No, Go Back
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
                     {wizardStep < 4 ? (
                       <button type="button" className={buttonClass} onClick={() => setWizardStep(wizardStep + 1)}>Next</button>
                     ) : (
-                      <button type="submit" className={buttonClass} disabled={loading}>{editId ? 'Update' : 'Save'} Admission</button>
+                      <button type="submit" className={buttonClass} disabled={loading}>Save Admission</button>
                     )}
                   </div>
                 </form>
@@ -492,30 +526,17 @@ export default function Admissions() {
             </div>
           )}
 
-          {/* Quick Add Patient Modal */}
-          {showPatientModal && (
-            <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[2000]" onClick={() => setShowPatientModal(false)}>
-              <div className="bg-white rounded-2xl shadow-2xl p-8 min-w-[340px] max-w-sm w-full" onClick={e => e.stopPropagation()}>
-                <h3 className="text-sky-400 text-xl font-bold mb-4">Quick Add Patient</h3>
-                <form onSubmit={handleQuickAddPatient} className="flex flex-col gap-3">
-                  <input name="first_name" placeholder="First Name" value={newPatient.first_name} onChange={e => setNewPatient({ ...newPatient, first_name: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
-                  <input name="last_name" placeholder="Last Name" value={newPatient.last_name} onChange={e => setNewPatient({ ...newPatient, last_name: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
-                  <input name="birthdate" type="date" placeholder="Birthdate" value={newPatient.birthdate} onChange={e => setNewPatient({ ...newPatient, birthdate: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
-                  <select name="sex" value={newPatient.sex} onChange={e => setNewPatient({ ...newPatient, sex: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]">
-                    <option value="">Sex</option>
-                    <option value="Female">Female</option>
-                    <option value="Male">Male</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <input name="hospital_registration_number" placeholder="Hospital Registration #" value={newPatient.hospital_registration_number} onChange={e => setNewPatient({ ...newPatient, hospital_registration_number: e.target.value })} required className="px-3 py-2 rounded-md border border-[#d1e7ef]" />
-                  <div className="mt-2 flex gap-2">
-                    <button type="submit" className={buttonClass + ' mr-2'} disabled={patientLoading}>Save Patient</button>
-                    <button type="button" onClick={() => setShowPatientModal(false)} className={secondaryButtonClass} disabled={patientLoading}>Cancel</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
+          {/* Quick Add Patient Modal (reused) */}
+          <PatientFormModal
+            open={showPatientModal}
+            onClose={() => setShowPatientModal(false)}
+            onSubmit={handleQuickAddPatient}
+            loading={patientLoading}
+            form={newPatient}
+            setForm={setNewPatient}
+            title="Quick Add Patient"
+            submitLabel="Save Patient"
+          />
         </div>
       </main>
     </Layout>
