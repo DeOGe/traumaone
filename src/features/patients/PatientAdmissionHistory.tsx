@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../supabaseClient';
 
 const cardStyle: React.CSSProperties = {
   background: '#fff',
@@ -10,7 +10,6 @@ const cardStyle: React.CSSProperties = {
   border: '1px solid #eaf6fa',
   width: '100%',
   maxWidth: 1000,
-  margin: '0 auto 24px auto',
 };
 
 interface Admission {

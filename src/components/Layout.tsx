@@ -1,63 +1,66 @@
 
 
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import SidebarLink from './SidebarLink';
-import SidebarHeader from './SidebarHeader';
-import ProfileAvatar from './ProfileAvatar';
-import Logo from './Logo';
-
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { useLocation } from 'react-router-dom';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const getActive = () => {
-    if (location.pathname.startsWith('/patients')) return 'patients';
-    if (location.pathname.startsWith('/admissions')) return 'admissions';
-    if (location.pathname.startsWith('/operating')) return 'operating';
-    if (location.pathname === '/' || location.pathname === '/dashboard') return 'dashboard';
-    return '';
+    const location = useLocation();
+    const currentPath = location.pathname;
+    const getHeaderTitle = (path) => {
+    switch (path) {
+  
+      case '/dashboard': // For the root path, if it also maps to dashboard
+        return 'Dashboard Overview';
+      case '/admissions':
+        return 'Admissions';
+      case '/patients':
+        return 'Patients';
+      case '/admission/:id':
+        return 'Admission Management';
+      default:
+        return 'Welcome';
+    }
   };
-  const active = getActive();
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
-
+  const headerTitle = getHeaderTitle(currentPath);
   return (
     <div className="min-h-screen font-sans bg-[#f6fbfd]">
-      {/* Header */}
-      <header className="w-full h-[72px] bg-white text-[#222c36] flex items-center justify-between px-10 fixed top-0 left-0 z-[100] border-b border-[#eaf6fa] shadow-sm">
-        <Logo />
-        <div className="flex items-center">
-          <ProfileAvatar />
-        </div>
-      </header>
-
-      {/* Sidebar */}
-      <aside className="w-[200px] px-2 h-screen bg-[#e6f6fb] text-primary pt-10 fixed top-0 left-0 flex flex-col items-stretch border-r border-[#eaf6fa] box-border z-50 shadow-sm">
-        <SidebarHeader />
-        <SidebarLink active={active === 'dashboard'} onClick={() => navigate('/dashboard')}>Dashboard</SidebarLink>
-        <SidebarLink active={active === 'patients'} onClick={() => navigate('/patients')}>Patients</SidebarLink>
-        <SidebarLink active={active === 'admissions'} onClick={() => navigate('/admissions')}>Admissions</SidebarLink>
-        {/* <SidebarLink active={active === 'operating'} onClick={() => navigate('/operating')}>Operating Room</SidebarLink> */}
-        <button
-          className="w-[calc(100%-32px)] ml-4 mr-4 px-6 py-3 text-base rounded-lg text-left font-semibold font-sans mt-auto mb-4 transition-colors duration-150 text-red-600 bg-red-50 hover:bg-red-100 border-none shadow-sm"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
-      </aside>
-
-      {/* Main Content */}
-      <div className="ml-[200px] pt-[72px] min-h-[calc(100vh-72px)] bg-[#f6fbfd] transition-all duration-200">
-        <div className="max-w-[1440px] mx-auto px-8 py-6">
-          {children}
-        </div>
-      </div>
+       <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2">
+              <div className="flex items-center gap-2 px-4">
+                <SidebarTrigger className="-ml-1" />
+                <Separator
+                  orientation="vertical"
+                  className="mr-2 data-[orientation=vertical]:h-4"
+                />
+              </div>
+               <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    {/* <BreadcrumbLink href="#"> */}
+                      <h1 className="text-primary-500 font-medium text-lg mt-2">{headerTitle}</h1>
+                    {/* </BreadcrumbLink> */}
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </header>
+            {children}
+          </SidebarInset>
+        </SidebarProvider>
     </div>
   );
 }

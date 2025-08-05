@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import PatientFormModal from '../components/PatientFormModal';
-import { supabase } from '../supabaseClient';
-import Layout from '../components/Layout';
-import Card from '../components/Card';
+import PatientFormModal from '../../components/PatientFormModal';
+import { supabase } from '../../supabaseClient';
+import Layout from '../../components/Layout';
+import Card from '../../components/Card';
 import Select from 'react-select';
 
 // Admission and Patient types
@@ -136,6 +136,7 @@ export default function Admissions() {
       .select('*')
       .order('created_at', { ascending: false });
     if (!error && data) setPatients(data as Patient[]);
+    console.log(data);
   }
 
   // Fetch admissions and patients on mount

@@ -1,6 +1,5 @@
 
-// ...existing code...
-import Layout from '../components/Layout';
+
 
 function StatCard({ title, value }: { title: string; value: string | number }) {
   return (
@@ -35,26 +34,6 @@ function PatientList() {
   );
 }
 
-function PatientFiles() {
-  const files = [
-    'Prescription.pdf',
-    'X-ray report.pdf',
-    'Checkup.pdf',
-    'Prescription.pdf',
-  ];
-  return (
-    <div className="bg-white rounded-2xl shadow-lg p-7 border border-[#eaf6fa]">
-      <div className="font-semibold text-[#222c36] mb-3">Patient Files</div>
-      <ul className="m-0 p-0 list-none text-[15px]">
-        {files.map((f) => (
-          <li key={f} className="flex items-center mb-2 last:mb-0">
-            <span className="text-[#00b6e9] mr-2">📄</span> {f}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 function RecentActivity() {
   const activity = [
@@ -76,7 +55,6 @@ function RecentActivity() {
 
 export default function Dashboard() {
   return (
-    <Layout>
       <main className="flex gap-8 p-9 bg-[#f6fbfd] min-h-[calc(100vh-72px)] font-sans">
         {/* Left/Main Column */}
         <div className="flex-1 flex flex-col gap-6 min-w-0">
@@ -100,9 +78,8 @@ export default function Dashboard() {
         {/* Right Column */}
         <div className="w-[320px] flex flex-col gap-6 min-w-0">
           <PatientList />
-          <PatientFiles />
+          {/* <PatientFiles /> */}
         </div>
       </main>
-    </Layout>
   );
 }

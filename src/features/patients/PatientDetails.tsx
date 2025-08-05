@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import Layout from '../components/Layout';
+import { supabase } from '../../supabaseClient';
+import Layout from '../../components/Layout';
 
 const PRIMARY = '#00b6e9';
 

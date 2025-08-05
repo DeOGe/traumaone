@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import Layout from './Layout';
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
@@ -19,5 +20,9 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (loading) return <p>Loading...</p>
   if (!session) return <Navigate to="/" />
-  return children
+  return (
+    <Layout>
+      {children}
+    </Layout>
+  )
 }
