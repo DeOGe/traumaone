@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -88,7 +88,6 @@ interface Patient {
 
 export default function UpdateAdmission() {
   const { id } = useParams<{ id: string }>();
-  const [admission, setAdmission] = useState<z.infer<typeof formSchema> | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient>();
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
@@ -97,7 +96,7 @@ export default function UpdateAdmission() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       patient_id: '',
-      status: 'admitted',
+      status: 'ADMITTED',
       surgery_done: '',
       surgery_done_at: undefined,
       remarks: '',
@@ -145,7 +144,6 @@ useEffect(() => {
     if (!id) return;
     const { data } = await supabase.from('admissions').select('*').eq('id', id).single();
     if (data) {
-      setAdmission(data as z.infer<typeof formSchema>);
       // Explicitly map each field to avoid type issues and guarantee correct population
       form.reset({
         patient_id: data.patient_id ?? '',

@@ -18,7 +18,7 @@ import { useLocation } from 'react-router-dom';
 export default function Layout({ children }: { children: React.ReactNode }) {
     const location = useLocation();
     const currentPath = location.pathname;
-    const getHeaderTitle = (path) => {
+    const getHeaderTitle = (path: string) => {
     switch (path) {
   
       case '/dashboard': // For the root path, if it also maps to dashboard

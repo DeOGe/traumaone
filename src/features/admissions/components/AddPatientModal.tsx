@@ -33,12 +33,8 @@ import { format } from 'date-fns';
 const newPatientFormSchema = z.object({
   first_name: z.string().min(1, 'First name is required.'),
   last_name: z.string().min(1, 'Last name is required.'),
-  birthdate: z.date({
-    required_error: 'A birthdate is required.',
-  }),
-  sex: z.enum(['Male', 'Female', 'Other'], {
-    required_error: 'Please select a sex.',
-  }),
+  birthdate: z.date(),
+  sex: z.enum(['Male', 'Female', 'Other']),
   hospital_registration_number: z.string().nullable().optional(),
 });
 
