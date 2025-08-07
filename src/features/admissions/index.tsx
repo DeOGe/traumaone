@@ -77,7 +77,7 @@ function AdmissionsPage() {
   }, [searchQuery, admissions]);
 
   // if (loading) return <div>Loading admissions...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (error) return <div>Error: {error?.message || String(error)}</div>;
 
   return (
     <main className='flex-1 mx-5 my-5 p-4 border bg-white rounded-lg shadow-md min-h-[85vh]'>
