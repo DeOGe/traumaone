@@ -127,7 +127,7 @@ function AdmissionsPage() {
           </div>
 
         ) : error ? (
-          <div>Error: {error.message}</div>
+          <div>Error: {(error as PostgrestError)?.message || String(error)}</div>
         ) : filteredAdmissions.length === 0 ? (
           <p>No admissions found.</p>
         ) : (
