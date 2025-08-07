@@ -83,7 +83,6 @@ export default function AdmissionDetails() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] text-muted-foreground">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="mt-2">Loading admission details...</p>
       </div>
     );
   }
@@ -162,7 +161,7 @@ export default function AdmissionDetails() {
                 // Optionally show loading state
                 await supabase
                   .from('admissions')
-                  .update({ status: 'discharged' })
+                  .update({ status: 'DISCHARGED' })
                   .eq('id', admission.id);
                 window.location.reload();
               } catch {

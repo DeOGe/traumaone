@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { Button } from "@/components/ui/button";
 import { PostgrestError } from '@supabase/supabase-js';
-
+import { Loader2 } from 'lucide-react';
 import {
   FileText,
   Eye
 } from "lucide-react"
+import { Badge } from '@/components/ui/badge';
 
 function AdmissionsPage() {
   const [admissions, setAdmissions] = useState<any[]>([]);
@@ -75,7 +76,7 @@ function AdmissionsPage() {
     }
   }, [searchQuery, admissions]);
 
-  if (loading) return <div>Loading admissions...</div>;
+  // if (loading) return <div>Loading admissions...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
@@ -98,9 +99,9 @@ function AdmissionsPage() {
             }
           }}
         />
-        <button className='button' onClick={() => { setSearchQuery(searchInput); setPage(1); }}>
+        <Button onClick={() => { setSearchQuery(searchInput); setPage(1); }}>
           Search
-        </button>
+        </Button>
         <input
           type="date"
           value={filterDate}
@@ -115,75 +116,67 @@ function AdmissionsPage() {
         >
           <option value="">All Statuses</option>
           <option value="ADMITTED">Admitted</option>
-          <option value="DISCHARGE">Discharged</option>
+          <option value="DISCHARGED">Discharged</option>
         </select>
       </div>
       <div className="admissions-list">
-        {filteredAdmissions.length === 0 ? (
+      {
+        loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[80vh] text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+
+        ) : error ? (
+          <div>Error: {error.message}</div>
+        ) : filteredAdmissions.length === 0 ? (
           <p>No admissions found.</p>
         ) : (
           filteredAdmissions.map((admission) => {
             const patient = admission.patients || {};
-            const age = Math.floor(moment(new Date()).diff(moment(patient.birthdate),'years',true));
-            const injuryDay = Math.floor(moment(new Date()).diff(moment(admission.date_of_injury),'days',true));
+            const age = Math.floor(moment().diff(moment(patient.birthdate), 'years', true));
+            const injuryDay = Math.floor(moment().diff(moment(admission.date_of_injury), 'days', true));
             return (
               <div
-                className='flex gap-3 border border-gray-300 rounded-lg p-2 mb-4'
+                className="flex gap-3 border border-gray-300 rounded-lg p-2 mb-4"
                 key={admission.id}
               >
-                {/* Patient Info */}
-                <div className='flex flex-col justify-center p-2 w-1/4'>
-
-                  <span className='font-bold text-lg'> {`${patient.last_name}, ${patient.first_name}`}</span>
-                  <span className='font-semibold mb-2'> {`${age} ${patient.sex}`}</span>
-                  <span  className={`font-semibold text-center mb-2 rounded-lg px-3 py-1 border broder-black}`}>{`${admission.status.toUpperCase()}`}</span>
-
-                  <span className='font-semibold'> {`DOI: ${moment(admission.date_of_injury).format('MM/DD/YYYY')}`}</span>
-                  <span className='font-semibold'> {`Admitted: ${moment(admission.created_at).format('MM/DD/YYYY')}`}</span>
-                  <span className='font-bold'> {`Injury day: ${injuryDay}`}</span>
-                  <span
-                    className={`font-semibold text-center mt-2 rounded-lg px-3 py-1 border
-                      ${admission.severity === 'ELECTIVE' ? 'bg-green-600 text-white border-green-700' : ''}
-                      ${admission.severity === 'STAT' ? 'bg-yellow-400 text-black border-yellow-500' : ''}
-                      ${admission.severity === 'DTOR' ? 'bg-red-700 text-white border-red-800' : ''}
-                      ${admission.severity === 'RB' ? 'bg-red-600 text-white border-red-700' : ''}
-                      ${admission.severity === 'Post-op/MGH' ? 'bg-gray-300 text-black border-gray-400' : ''}
-                      ${admission.severity === 'THOC' ? 'bg-gray-500 text-white border-gray-600' : ''}
-                      ${admission.severity === 'TOS' ? 'bg-gray-500 text-white border-gray-600' : ''}
-                      ${admission.severity === 'HAMA' ? 'bg-gray-500 text-white border-gray-600' : ''}
-                      ${admission.severity === 'EXPIRED' ? 'bg-black text-white border-gray-800' : ''}
-                    `}
-                  >
-                    {admission.severity || '-'}
-                  </span>
+                <div className="flex flex-col justify-center p-2 w-1/4">
+                  <span className="font-bold text-lg">{`${patient.last_name}, ${patient.first_name}`}</span>
+                  <span className="font-semibold mb-2">{`${age} ${patient.sex}`}</span>
+                  <Badge className={`capitalize px-3 py-1 mx-auto mb-2 ${admission.status === 'discharged' ? 'bg-red-500 text-white' : admission.status === 'admitted' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'}`}>{admission.status || '-'}</Badge>
+                  <span className="font-semibold">{`DOI: ${moment(admission.date_of_injury).format('MM/DD/YYYY')}`}</span>
+                  <span className="font-semibold">{`Admitted: ${moment(admission.created_at).format('MM/DD/YYYY')}`}</span>
+                  <span className="font-bold">{`Injury day: ${injuryDay}`}</span>
+                  <span className="font-bold"></span>
+                  
+                  <Badge className={`capitalize px-3 py-1 mt-2 mx-auto ${admission.severity === 'critical' ? 'bg-red-600 text-white' : admission.severity === 'severe' ? 'bg-orange-500 text-white' : admission.severity === 'moderate' ? 'bg-yellow-400 text-black' : 'bg-green-500 text-white'}`}>{admission.severity || '-'}</Badge>
                 </div>
-                {/* Admission */}
-                <div className='flex flex-1 gap-1'>
-                  <div className='flex flex-col h-full w-1/2'>
-                    <div className='flex-1 items-center p-2'>
-                      <h1 className='font-bold'>Diagnosis</h1>
-                      <span className='flex-1'>{admission.diagnosis || 'N/A'}</span>
+                <div className="flex flex-1 gap-1">
+                  <div className="flex flex-col h-full w-1/2">
+                    <div className="flex-1 items-center p-2">
+                      <h1 className="font-bold">Diagnosis</h1>
+                      <span className="flex-1">{admission.diagnosis || 'N/A'}</span>
                     </div>
-                    <div className='flex-1 items-center p-2'>
-                      <h1 className='font-bold'>Surgical Plan</h1>
-                      <span className='flex-1'>{admission.surgical_plan || 'N/A'}</span>
+                    <div className="flex-1 items-center p-2">
+                      <h1 className="font-bold">Surgical Plan</h1>
+                      <span className="flex-1">{admission.surgical_plan || 'N/A'}</span>
                     </div>
                   </div>
-                  <div className='flex flex-col h-full w-1/2'>
-                    <div className='flex-1 items-center p-2'>
-                      <h1 className='font-bold'>Surgical Done</h1>
-                      <span className='flex flex-col'>
-                          <span>{admission.surgery_done}</span>
-                          <span>{admission.surgery_done_at ? `(${admission.surgery_done_at})` : ''}</span>
+                  <div className="flex flex-col h-full w-1/2">
+                    <div className="flex-1 items-center p-2">
+                      <h1 className="font-bold">Surgery Done</h1>
+                      <span className="flex flex-col">
+                        <span>{admission.surgery_done}</span>
+                        <span>{admission.surgery_done_at ? `(${admission.surgery_done_at})` : ''}</span>
                       </span>
                     </div>
-                    <div className='flex-1 items-center p-2'>
-                      <h1 className='font-bold'>Remarks</h1>
-                      <span className='flex-1'>{admission.remarks || 'N/A'}</span>
+                    <div className="flex-1 items-center p-2">
+                      <h1 className="font-bold">Remarks</h1>
+                      <span className="flex-1">{admission.remarks || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
-                <div className='flex flex-col gap-2 justify-center flex-none'> 
+                <div className="flex flex-col gap-2 justify-center flex-none">
                   <Button variant="outline" asChild>
                     <a
                       href={`/admission/${admission.id}`}
@@ -193,18 +186,18 @@ function AdmissionsPage() {
                       <Eye className="size-4" />
                     </a>
                   </Button>
-                   <Button variant="outline" asChild>
+                  <Button variant="outline" asChild>
                     <a
-                      href={`#`}
+                      href="#"
                       className="inline-flex items-center justify-center shadow-sm border w-10 h-10"
                       title="View Admission Details"
                     >
-                      <FileText className="size-4"/>
+                      <FileText className="size-4" />
                     </a>
                   </Button>
                 </div>
               </div>
-            )
+            );
           })
         )}
       </div>

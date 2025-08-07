@@ -39,7 +39,7 @@ const data = {
     },
     {
       title: "Patients",
-      url: "patients",
+      url: "/patients",
       icon: SquareUser,
       isActive: false,
     },
